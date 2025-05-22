@@ -69,7 +69,14 @@
     <artifactId>vertx-json-schema</artifactId>
     <version>${vertx.version}</version>
   </dependency>
-
+  
+  <!-- GITLAB Access-->
+<!-- https://mvnrepository.com/artifact/org.gitlab4j/gitlab4j-api -->
+<dependency>
+    <groupId>org.gitlab4j</groupId>
+    <artifactId>gitlab4j-api</artifactId>
+    <version>5.8.0</version>
+</dependency>
     
     
   </dependencies>

@@ -1,11 +1,16 @@
 package api;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+
+import org.gitlab4j.api.GitLabApi;
+import org.gitlab4j.api.models.Project;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
@@ -61,9 +66,60 @@ public class ApiVerticle extends AbstractVerticle{
 	    		.allowedMethods(allowedMethods));
 	    // POST /blog  ─ create
 	    router.post("/createLog").handler(this::handleCreate);
-	    router.post("/quill/create").handler(this::handleQuillInsert); 
+	    router.post("/quill/create").handler(this::handleQuillInsert);
 	    
-	    	    
+	    
+	    /*
+	     * Declare Gitlab Repos Separately
+	     * 
+	     * 
+	     * */
+	    
+	    
+	    router.post("/git/getRepos").handler(ctx->{
+	    	vertx.executeBlocking(promise ->{
+	    		try {
+	    			String gitURL=config().getString("gitURL");
+	    			String token=config().getString("token");
+	    			GitLabApi gitLabApi = new GitLabApi(gitURL, token);
+	                List<Project> projects = gitLabApi.getProjectApi().getProjects();
+	                promise.complete(projects);
+	    		}catch(Exception e) {
+	    			promise.fail(e);
+	    		}
+	    	},res->{
+	    		if (res.succeeded()) {
+	    			List<Project> projects = (List<Project>) res.result();
+	                JsonArray result = new JsonArray();
+	                for (Project p : projects) {
+	                    result.add(new JsonObject()
+	                        .put("id", p.getId())
+	                        .put("name", p.getName())
+	                        .put("web_url", p.getWebUrl()));
+	                }
+	                ctx.response()
+	                   .putHeader("Content-Type", "application/json")
+	                   .end(result.encodePrettily());
+	    		}
+	    		else {
+	    			ctx.response()
+	                .setStatusCode(500)
+	                .putHeader("Content-Type", "application/json")
+	                .end(new JsonObject()
+	                     .put("error", res.cause().getMessage())
+	                     .encode());
+	    		}
+	    	}
+	    			);
+	    });
+	    
+	    
+	    
+	    /*
+	     * Git lab APIs
+	     * 
+	     * */
+	 	    	    
 	    vertx.createHttpServer()
         .requestHandler(router)
         .listen(Integer.parseInt(config().getString("server_port")),config().getString("server_ip")
@@ -76,6 +132,7 @@ public class ApiVerticle extends AbstractVerticle{
           }
         });
 	}
+		
 	
 	private void handleCreate(RoutingContext ctx) {
 		@SuppressWarnings("deprecation")

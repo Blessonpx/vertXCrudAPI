@@ -13,12 +13,15 @@ public static void main(String[] args) {
 		String dbName= args[3];
 		String db_user = args[4];
 		String db_password = args[5];
+		String gitUrl = args[6];
+		String token = args[7];
 		JsonObject objIn = new JsonObject().put("server_ip", server_ip)
 				.put("server_port",server_port)
 				.put("host",host )
 				.put("db",dbName )
 				.put("user",db_user )
-				.put("passwd",db_password )
+				.put("gitURL",gitUrl )
+				.put("token",token )
 				;
 		DeploymentOptions opts = new DeploymentOptions().setConfig(objIn);
 		Vertx vertx = Vertx.vertx();
