@@ -20,6 +20,7 @@ public static void main(String[] args) {
 				.put("host",host )
 				.put("db",dbName )
 				.put("user",db_user )
+				.put("passwd",db_password )
 				.put("gitURL",gitUrl )
 				.put("token",token )
 				;
