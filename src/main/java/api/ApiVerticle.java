@@ -67,7 +67,7 @@ public class ApiVerticle extends AbstractVerticle{
 	    // POST /blog  ─ create
 	    router.post("/createLog").handler(this::handleCreate);
 	    router.post("/quill/create").handler(this::handleQuillInsert);
-	    
+	    router.get("/eg/getRepos").handler(this::egGetRepos);
 	    
 	    /*
 	     * Declare Gitlab Repos Separately
@@ -75,27 +75,43 @@ public class ApiVerticle extends AbstractVerticle{
 	     * 
 	     * */
 	    
-	    
-	    router.post("/git/getRepos").handler(ctx->{
+
+	    router.get("/git/getRepos").handler(ctx->{
 	    	vertx.executeBlocking(promise ->{
 	    		try {
+	    			
 	    			String gitURL=config().getString("gitURL");
 	    			String token=config().getString("token");
 	    			GitLabApi gitLabApi = new GitLabApi(gitURL, token);
 	                List<Project> projects = gitLabApi.getProjectApi().getProjects();
+	                promise.complete(projects);
+	                
+//	    			String gitURL=config().getString("gitURL");
+//	    			String token=config().getString("token");
+//	    			GitLabApi gitLabApi = new GitLabApi(gitURL, token);
+//	                List<Project> projects = gitLabApi.getProjectApi().getProjects();
+//	                
+//	                /*filter only the once with user*/
+//	                List<Project> filteredProjects = projects.stream()
+//	                        .filter(project -> project.getPathWithNamespace().contains("/cart.user/"))
+//	                        .toList();
+
+	                //promise.complete(filteredProjects);
 	                promise.complete(projects);
 	    		}catch(Exception e) {
 	    			promise.fail(e);
 	    		}
 	    	},res->{
 	    		if (res.succeeded()) {
-	    			List<Project> projects = (List<Project>) res.result();
+	    			List<Project> filteredProjects = (List<Project>) res.result();
 	                JsonArray result = new JsonArray();
-	                for (Project p : projects) {
+	                for (Project p : filteredProjects) {
+	                	if (p.getWebUrl().contains("user")) {
 	                    result.add(new JsonObject()
 	                        .put("id", p.getId())
 	                        .put("name", p.getName())
 	                        .put("web_url", p.getWebUrl()));
+	                	}
 	                }
 	                ctx.response()
 	                   .putHeader("Content-Type", "application/json")
@@ -115,10 +131,11 @@ public class ApiVerticle extends AbstractVerticle{
 	    
 	    
 	    
-	    /*
-	     * Git lab APIs
-	     * 
-	     * */
+	    
+	    
+	    
+	    
+	    
 	 	    	    
 	    vertx.createHttpServer()
         .requestHandler(router)
@@ -150,6 +167,47 @@ public class ApiVerticle extends AbstractVerticle{
 	    	}
 	    });
 	    
+	}
+	
+	private void egGetRepos(RoutingContext ctx) {
+		JsonArray repos = new JsonArray()
+	            .add(new JsonObject()
+	                .put("id", 153)
+	                .put("name", "jenkins_test_1")
+	                .put("web_url", "http://port.user/jenkins_test_1"))
+	            .add(new JsonObject()
+	                .put("id", 149)
+	                .put("name", "diyui")
+	                .put("web_url", "http://port.user/diyui"))
+	            .add(new JsonObject()
+	            	.put("id", 148)
+	            	.put("name", "customer360")
+	            	.put("web_url", "http://port.user/customer360"))
+	            .add(new JsonObject()
+	            	.put("id", 146)
+	            	.put("name", "diy_campaign_ui_sso")
+	            	.put("web_url", "http://port.user/diy_campaign_ui_sso"))
+	            .add(new JsonObject()
+	            	.put("id", 145)
+	            	.put("name", "ui_code_keycloak")
+	            	.put("web_url", "http://port.user/ui_code_keycloak"))
+	            .add(new JsonObject()
+	            	.put("id", 144)
+	            	.put("name", "sso")
+	            	.put("web_url", "http://port.user/sso"))
+	            .add(new JsonObject()
+	            	.put("id", 142)
+	            	.put("name", "adapter")
+	            	.put("web_url", "http://port.user/adapter"))
+	            .add(new JsonObject()
+	            	.put("id", 141)
+	            	.put("name", "react_solus_user")
+	            	.put("web_url", "http://port.user/react_solus_user"))         
+	            ;
+
+	        ctx.response()
+	               .putHeader("Content-Type", "application/json")
+	               .end(repos.encodePrettily());
 	}
 	
 	private void handleQuillInsert(RoutingContext ctx) {

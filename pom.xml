@@ -77,7 +77,8 @@
     <artifactId>gitlab4j-api</artifactId>
     <version>5.8.0</version>
 </dependency>
-    
+
+   
     
   </dependencies>
 
